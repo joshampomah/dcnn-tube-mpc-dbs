@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: dcnn-tube-mpc-dbs
+Version: 0.1.0
+Summary: DC neural network tube MPC for closed-loop DBS
+Author: Joshua Ampomah
+License: MIT
+Requires-Python: <3.13,>=3.10
+License-File: LICENSE
+Requires-Dist: numpy<2.0,>=1.24
+Requires-Dist: scipy<1.15,>=1.10
+Requires-Dist: matplotlib<4.0,>=3.7
+Requires-Dist: torch<3.0,>=2.0
+Requires-Dist: cvxpy<1.6,>=1.4
+Requires-Dist: osqp<1.1,>=0.6
+Requires-Dist: piqp>=0.4
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0; extra == "dev"
+Dynamic: license-file

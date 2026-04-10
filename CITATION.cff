@@ -1,0 +1,7 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "dcnn-tube-mpc-dbs"
+authors:
+  - family-names: Ampomah
+    given-names: Joshua
+type: software

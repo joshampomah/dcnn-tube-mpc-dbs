@@ -1,0 +1,1 @@
+This software is a research prototype developed as part of an academic project. It is not a medical device and has not been approved, cleared, or certified by any regulatory authority. It must not be used for clinical decision-making, patient treatment, or any other medical purpose. Use at your own risk.
