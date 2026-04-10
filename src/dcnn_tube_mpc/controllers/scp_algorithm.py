@@ -95,7 +95,7 @@ def solve_scp(
 
     solver_type = config.qp_solver_type
     use_direct = solver_type in ("direct", "osqp", "piqp", "proxqp",
-                                  "condensed", "condensed-proxqp", "condensed-daqp")
+                                  "stable-neuron", "stable-neuron-proxqp", "stable-neuron-daqp")
     qp = None
 
     if solver_type == "direct":
