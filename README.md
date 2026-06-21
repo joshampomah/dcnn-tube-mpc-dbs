@@ -139,9 +139,6 @@ You can also point `--data-dir` at a single folder containing
 `beta_causal_RMS.csv` and `stimulation.csv`, rather than a root containing
 many `patient_*` folders.
 
-Cached `.npz` files with `x`, `u`, and `y` arrays are still supported as an
-optional private preprocessing format, but they are not required.
-
 At runtime, `SCPController.compute_control(...)` expects `y_history` and
 `u_history` newest-first. The training windows use oldest-to-newest histories
 because they represent fixed supervised regressors. The benchmark repo has a

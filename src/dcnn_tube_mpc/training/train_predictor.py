@@ -214,10 +214,10 @@ def _load_or_generate_data(
     synthetic_stim: bool = False,
     max_samples_per_patient: Optional[int] = None,
 ) -> tuple:
-    """Load custom patient folders or optional cached windows.
+    """Load custom patient folders, or generate synthetic fallback data.
 
     Args:
-        data_dir: Optional path to processed patient folders or `.npz` windows.
+        data_dir: Optional path to processed patient folders.
         n_state_y: Number of past output observations in the state.
         n_state_u: Number of past input observations in the state.
         horizon: Prediction horizon.
@@ -254,7 +254,7 @@ def _load_or_generate_data(
             return csv_data
 
         raise FileNotFoundError(
-            f"No patient CSV folders or .npz windows found in {data_dir}"
+            f"No processed patient CSV folders found in {data_dir}"
         )
 
     logger.warning("No patient data found - generating synthetic training data")
@@ -846,7 +846,7 @@ def main() -> None:
         default=None,
         help=(
             "Processed patient root or folder with beta_causal_RMS.csv and "
-            "stimulation.csv. Directories of cached .npz x/u/y windows also work."
+            "stimulation.csv."
         ),
     )
     parser.add_argument(
