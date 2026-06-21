@@ -136,10 +136,8 @@ processed `beta_causal_RMS.csv`; use `--input-space log` only if your CSV has
 already been log-transformed.
 
 You can also point `--data-dir` at a single folder containing
-`beta_causal_RMS.csv` and `stimulation.csv`, such as the original
-`nndbs/original_js` stimulation pair. If the stimulation trace is sampled at an
-obvious integer multiple of the beta trace, the loader downsamples it before
-windowing.
+`beta_causal_RMS.csv` and `stimulation.csv`, rather than a root containing
+many `patient_*` folders.
 
 Cached `.npz` files with `x`, `u`, and `y` arrays are still supported as an
 optional private preprocessing format, but they are not required.

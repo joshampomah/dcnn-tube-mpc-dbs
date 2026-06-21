@@ -169,7 +169,7 @@ def _load_csv_data(
     max_samples_per_patient: Optional[int],
     seed: int,
 ) -> Optional[tuple[np.ndarray, np.ndarray, np.ndarray]]:
-    """Load Mark/4YP-style beta_causal_RMS.csv + stimulation.csv folders."""
+    """Load processed beta_causal_RMS.csv + stimulation.csv folders."""
     dirs = _patient_dirs(data_dir, patient_role=patient_role)
     if not dirs:
         return None
