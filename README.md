@@ -13,6 +13,17 @@ This package implements a robust tube MPC controller based on Difference-of-Conv
 - **Disturbance bounds**: DKW and ACI methods for online bound adaptation
 - **Synthetic data**: Generate benchmark datasets without patient recordings
 
+## Repository map
+
+This repository is the neural MPC method repo in a four-repo public code split:
+
+| Repository | Role |
+|---|---|
+| [closed-loop-dbs-bench](../closed-loop-dbs-bench) | Shared benchmark, synthetic plant, metrics, plotting utilities, bang-bang/PI/linear baselines |
+| [dcnn-tube-mpc-dbs](../dcnn-tube-mpc-dbs) | DC neural network tube MPC, SCP solver stack, uncertainty/tube-bound utilities |
+| [koopman-mpc-dbs](../koopman-mpc-dbs) | Koopman lifted-linear predictor, dense QP builder, Koopman MPC training/demo code |
+| [embedded-stable-neuron-mpc](../embedded-stable-neuron-mpc) | C++/STM32 implementation of the stable-neuron and Koopman QP solvers |
+
 ## Installation
 
 ```bash
