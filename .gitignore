@@ -14,3 +14,7 @@ htmlcov/
 .venv
 venv/
 .DS_Store
+data/
+private_data/
+models/
+results/

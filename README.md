@@ -90,6 +90,66 @@ Use a saved predictor directory if you have one:
 python scripts/run_dcnn_mpc.py --model-dir models/dcnn --duration 60
 ```
 
+## Using Your Own Data
+
+For the 4YP DCNN experiments, the larger private data files were raw MATLAB
+recordings from the Cambium/MRC BNDU dataset
+[STN local field potential recordings from awake patients with Parkinson's, ON
+and OFF meds, and during 130 Hz DBS](https://data.mrc.ox.ac.uk/stn-lfp-on-off-and-dbs).
+Registered/logged-in users can download or request access to the raw data from
+that page. The raw `.mat` files were first processed into one folder per
+recording:
+
+```text
+private_data/processed/aperiodic/
+├── patient_001/
+│   ├── beta_causal_RMS.csv
+│   ├── stimulation.csv
+│   └── metadata.json
+├── patient_002/
+│   └── ...
+└── selected_patients.json
+```
+
+The raw `.mat` input used by the 4YP processing scripts had a `SmrData` struct
+with `Fs`, `WvData`, and `WvTits`. Processing selected the STN LFP channel,
+extracted a causal 13-30 Hz beta RMS envelope, resampled it to 50 Hz, and wrote
+`beta_causal_RMS.csv`. For resting-state recordings, `stimulation.csv` is the
+same length and contains zeros.
+
+Train directly from that processed root:
+
+```bash
+python -m dcnn_tube_mpc.training.train_predictor \
+  --data-dir ../private_data/processed/aperiodic \
+  --input-space linear \
+  --patient-role training \
+  --synthetic-stim \
+  --horizon 5 \
+  --save-dir models/dcnn_custom
+```
+
+`--synthetic-stim` overlays PRBS stimulation on autonomous/resting-state beta,
+matching the 4YP DCNN training setup. Omit it if `stimulation.csv` already
+contains applied stimulation. `--input-space linear` is correct for the
+processed `beta_causal_RMS.csv`; use `--input-space log` only if your CSV has
+already been log-transformed.
+
+You can also point `--data-dir` at a single folder containing
+`beta_causal_RMS.csv` and `stimulation.csv`, such as the original
+`nndbs/original_js` stimulation pair. If the stimulation trace is sampled at an
+obvious integer multiple of the beta trace, the loader downsamples it before
+windowing.
+
+Cached `.npz` files with `x`, `u`, and `y` arrays are still supported as an
+optional private preprocessing format, but they are not required.
+
+At runtime, `SCPController.compute_control(...)` expects `y_history` and
+`u_history` newest-first. The training windows use oldest-to-newest histories
+because they represent fixed supervised regressors. The benchmark repo has a
+longer [DATA.md](https://github.com/joshampomah/closed-loop-dbs-bench/blob/master/DATA.md)
+with a raw-trace-to-window example.
+
 ## Main Programming Interface
 
 The high-level controller is `SCPController`:
