@@ -120,12 +120,15 @@ def main():
     from dcnn_tube_mpc.controllers.scp_controller import SCPController
 
     cfg = SCPConfig(
-        horizon=horizon,
-        n_state=n_state,
+        prediction_horizon=horizon,
+        control_horizon=horizon,
+        n_state_y=n_state_y,
+        n_state_u=n_state_u,
         Q=50000.0,
         R=1.0,
-        max_iter=3,
-        solver="cvxpy",
+        maxiters=3,
+        qp_solver_type="cvxpy",
+        solver="CLARABEL",
         u_min=0.0,
         u_max=0.030,
         beta_0=2.3,

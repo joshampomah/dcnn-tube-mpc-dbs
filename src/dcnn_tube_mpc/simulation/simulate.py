@@ -31,8 +31,17 @@ class ControllerProtocol(Protocol):
     Any object with compute_control and reset satisfies this protocol.
     """
 
-    def compute_control(self, y: float, **kwargs) -> float: ...
+    def compute_control(self, *args, **kwargs): ...
     def reset(self) -> None: ...
+
+
+def _normalise_control_output(control_output):
+    """Accept either u or (u, info/result) controller outputs."""
+    if isinstance(control_output, tuple):
+        if len(control_output) == 0:
+            raise ValueError("Controller returned an empty tuple")
+        return float(control_output[0])
+    return float(control_output)
 
 
 # ---------------------------------------------------------------------------
@@ -245,8 +254,10 @@ def simulate_trial(
         else:
             n_state_y = len(patient.y_history)
             n_state_u = len(patient.u_history)
-            z_k = np.array(y_buf[-n_state_y:] + u_buf[-n_state_u:], dtype=np.float32)
-            u_now = float(controller.compute_control(y_now, z_k=z_k, u_prev=u_prev))
+            y_history = np.array(y_buf[-n_state_y:][::-1], dtype=np.float32)
+            u_history = np.array(u_buf[-n_state_u:][::-1], dtype=np.float32)
+            control_output = controller.compute_control(y_history, u_history, u_prev)
+            u_now = _normalise_control_output(control_output)
 
         y_obs, eta = sim.step(u_now, rng=rng)
 

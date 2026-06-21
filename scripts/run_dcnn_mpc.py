@@ -30,8 +30,9 @@ def main():
     parser.add_argument("--Q", type=float, default=50000.0)
     parser.add_argument("--R", type=float, default=1.0)
     parser.add_argument("--max-iter", type=int, default=5)
-    parser.add_argument("--solver", default="clarabel",
-                        choices=["clarabel", "osqp", "piqp", "cvxpy"])
+    parser.add_argument("--solver", default="direct",
+                        choices=["direct", "osqp", "piqp", "cvxpy"],
+                        help="QP backend. 'direct' uses the direct CLARABEL path.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
@@ -102,12 +103,15 @@ def main():
     # Build SCP config
     from dcnn_tube_mpc.controllers.scp_config import SCPConfig
     cfg = SCPConfig(
-        horizon=args.horizon,
-        n_state=n_state,
+        prediction_horizon=args.horizon,
+        control_horizon=args.horizon,
+        n_state_y=args.n_state_y,
+        n_state_u=args.n_state_u,
         Q=args.Q,
         R=args.R,
-        max_iter=args.max_iter,
-        solver=args.solver,
+        maxiters=args.max_iter,
+        qp_solver_type=args.solver,
+        solver="CLARABEL",
         u_min=0.0,
         u_max=0.030,
         beta_0=args.beta_0,
