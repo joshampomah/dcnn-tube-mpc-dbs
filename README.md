@@ -1,49 +1,160 @@
 # dcnn-tube-mpc-dbs
 
-DC Neural Network Tube MPC for Closed-Loop Deep Brain Stimulation.
+DC neural network tube MPC for closed-loop deep brain stimulation (DBS).
 
-Research code accompanying the CDC25 paper "Deep Learning Model Predictive Control for Deep Brain Stimulation in Parkinson's Disease".
+This repository contains the neural-network MPC method code from the project:
+multi-step DCNN predictors, sequential convex programming (SCP), QP solver
+backends, and uncertainty/tube-bound utilities. It is intended for researchers
+who want to inspect or extend the DCNN controller family, not just run the
+baseline benchmark.
 
-## Overview
+This code is a research prototype. It is not a medical device and must not be
+used for clinical decision-making or patient treatment. See
+[DISCLAIMER.md](DISCLAIMER.md).
 
-This package implements a robust tube MPC controller based on Difference-of-Convex Neural Networks (DC-NN). Key components:
+## Repository Set
 
-- **DC-NN predictor**: Multi-step predictor using DC decomposition f = f1 - f2
-- **SCP algorithm**: Sequential Convex Programming for solving the tube MPC
-- **Disturbance bounds**: DKW and ACI methods for online bound adaptation
-- **Synthetic data**: Generate benchmark datasets without patient recordings
+The project is split by responsibility:
 
-## Repository map
-
-This repository is the neural MPC method repo in a four-repo public code split:
-
-| Repository | Role |
+| Repository | Purpose |
 |---|---|
-| [closed-loop-dbs-bench](../closed-loop-dbs-bench) | Shared benchmark, synthetic plant, metrics, plotting utilities, bang-bang/PI/linear baselines |
-| [dcnn-tube-mpc-dbs](../dcnn-tube-mpc-dbs) | DC neural network tube MPC, SCP solver stack, uncertainty/tube-bound utilities |
-| [koopman-mpc-dbs](../koopman-mpc-dbs) | Koopman lifted-linear predictor, dense QP builder, Koopman MPC training/demo code |
-| [embedded-stable-neuron-mpc](../embedded-stable-neuron-mpc) | C++/STM32 implementation of the stable-neuron and Koopman QP solvers |
+| [closed-loop-dbs-bench](https://github.com/joshampomah/closed-loop-dbs-bench) | Shared benchmark, synthetic DBS plant, metrics, plotting utilities, bang-bang/PI/linear baselines |
+| [dcnn-tube-mpc-dbs](https://github.com/joshampomah/dcnn-tube-mpc-dbs) | DC neural network tube MPC method: predictor, SCP controller, uncertainty bounds, synthetic training/demo code |
+| [koopman-mpc-dbs](https://github.com/joshampomah/koopman-mpc-dbs) | Koopman MPC method: lifted-linear predictor, dense QP builder, OLS training/demo code |
+| [embedded-stable-neuron-mpc](https://github.com/joshampomah/embedded-stable-neuron-mpc) | C++/STM32 implementation of the stable-neuron and Koopman QP solvers, plus the final report PDF |
+
+Use `closed-loop-dbs-bench` for a common comparison harness. Use this repo for
+the DCNN-specific model, training, and controller implementation.
+
+## What Is In This Repo
+
+- `src/dcnn_tube_mpc/models/`: DCNN/ICNN model definitions, spectral
+  normalization helpers, ensemble predictor support, and an ARX utility model.
+- `src/dcnn_tube_mpc/training/`: synthetic/public-safe training pipeline for
+  multi-step predictors.
+- `src/dcnn_tube_mpc/controllers/`: SCP controller, SCP configuration, and SCP
+  algorithm implementation.
+- `src/dcnn_tube_mpc/solvers/`: QP backends used inside SCP, including direct
+  CLARABEL-style assembly, OSQP, PIQP, and CVXPY-backed paths.
+- `src/dcnn_tube_mpc/bounds/`: disturbance bounds, DKW bounds, ACI bounds, and
+  perturbation/Jacobian-based utilities.
+- `src/dcnn_tube_mpc/synthetic/`: synthetic beta/stimulation generation and
+  modulation helpers.
+- `src/dcnn_tube_mpc/simulation/`: a small method-local simulation harness for
+  quick demos.
+- `scripts/run_dcnn_mpc.py`: command-line synthetic run for a DCNN controller.
+- `examples/quick_demo.py`: end-to-end demo that trains a small synthetic
+  predictor, computes bounds, and runs closed-loop simulation.
+- `tests/`: lightweight public-safe tests for the model/controller utilities.
+
+## What Is Not In This Repo
+
+- No patient recordings.
+- No patient-trained model checkpoints.
+- No private experiment archive or report-writing material.
+- No STM32 firmware. Embedded deployment lives in `embedded-stable-neuron-mpc`.
+
+The included demos use synthetic data. If no model directory is supplied,
+`scripts/run_dcnn_mpc.py` falls back to random untrained weights, which is useful
+only for exercising the code path.
 
 ## Installation
+
+Requires Python 3.10-3.12.
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-## Quick start
+Optional solver backends may require their own platform-specific wheels. The CI
+workflow installs the default development dependencies and runs the tests on
+Python 3.10, 3.11, and 3.12.
 
-```python
-from dcnn_tube_mpc.synthetic.data_generator import generate_synthetic_beta, generate_synthetic_stimulation
+## Quick Start
 
-beta = generate_synthetic_beta(n_steps=5000, seed=42)
-stim = generate_synthetic_stimulation(n_steps=5000, seed=42)
+Run the end-to-end synthetic demo:
+
+```bash
+python examples/quick_demo.py
 ```
 
-See `examples/quick_demo.py` for a complete demo.
+Run the command-line synthetic controller path:
 
-## Disclaimer
+```bash
+python scripts/run_dcnn_mpc.py --duration 30 --solver direct
+```
 
-See [DISCLAIMER.md](DISCLAIMER.md). This is a research prototype — not a medical device.
+Use a saved predictor directory if you have one:
+
+```bash
+python scripts/run_dcnn_mpc.py --model-dir models/dcnn --duration 60
+```
+
+## Main Programming Interface
+
+The high-level controller is `SCPController`:
+
+```python
+from dcnn_tube_mpc.controllers.scp_config import SCPConfig
+from dcnn_tube_mpc.controllers.scp_controller import SCPController
+
+cfg = SCPConfig(
+    prediction_horizon=5,
+    control_horizon=5,
+    n_state_y=15,
+    n_state_u=15,
+    qp_solver_type="direct",
+    beta_0=2.3,
+)
+
+ctrl = SCPController(predictor=predictor, config=cfg, W_bounds=W_bounds)
+u, info = ctrl.compute_control(y_history, u_history, u_prev)
+```
+
+`y_history` and `u_history` are newest-first arrays. `compute_control` returns
+the first control action and an `SCPResult` with solver diagnostics.
+
+## Using With The Benchmark Repo
+
+Install the benchmark repo alongside this repo:
+
+```bash
+pip install -e ../closed-loop-dbs-bench
+pip install -e ".[dev]"
+```
+
+Then pass an `SCPController` directly into the benchmark runner:
+
+```python
+from dbs_bench.simulation.simulate import SimulationRunner
+from dbs_bench.synthetic.data_generator import generate_demo_patient
+
+patient = generate_demo_patient(n_state_y=15)
+runner = SimulationRunner(patient, dt=0.02, beta_0=2.3)
+
+result = runner.run(ctrl, duration=60.0, controller_type="dcnn-mpc")
+print(result.metrics)
+```
+
+## Method Summary
+
+The predictor is a multi-step difference-of-convex neural network:
+
+```text
+f(z, u) = f1(z, u) - f2(z, u)
+```
+
+where the convex sub-networks allow each MPC step to be approximated by a
+sequence of convex QP subproblems. The SCP controller repeatedly linearizes the
+concave part, solves the QP, and applies the first control input. Disturbance
+and tube-bound modules provide public-safe versions of the robustness machinery
+used in the project.
+
+## Tests
+
+```bash
+pytest tests/ -v
+```
 
 ## Citation
 
@@ -51,4 +162,4 @@ See [CITATION.cff](CITATION.cff).
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
