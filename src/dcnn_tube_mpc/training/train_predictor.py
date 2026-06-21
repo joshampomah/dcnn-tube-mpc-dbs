@@ -642,7 +642,8 @@ class MultiStepPredictor:
         return self.model.networks
 
 
-def main():
+def main() -> None:
+    """Train and save a multi-step DC-NN predictor from CLI arguments."""
     parser = argparse.ArgumentParser(
         description="DC-NN predictor training",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,

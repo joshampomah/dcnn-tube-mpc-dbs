@@ -13,7 +13,8 @@ from pathlib import Path
 import numpy as np
 
 
-def main():
+def main() -> None:
+    """Run a DC-NN Tube MPC simulation from CLI arguments."""
     parser = argparse.ArgumentParser(
         description="Run DC-NN Tube MPC simulation",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,

@@ -41,6 +41,7 @@ def apply_spectral_norm_to_linear(
     target: float = 0.5,
     n_power_iterations: int = 1,
 ) -> ScaledSpectralNorm:
+    """Wrap a linear layer with scaled spectral normalization."""
     return ScaledSpectralNorm(layer, target=target, n_power_iterations=n_power_iterations)
 
 
